@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">  <!-- nicht in Suchmaschinen aufnehmen -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Norsk">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <title>Norsk – Norwegisch lernen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇳🇴</text></svg>">
+</head>
+<body>
+  <aside id="nav">
+    <div class="logo"><span class="ko">Norsk</span><small>Lernapp · Bokmål</small></div>
+    <a href="#home"><i>🏠</i><span class="lbl">Start</span></a>
+    <a href="#learn"><i>📇</i><span class="lbl">Vokabeln lernen</span> <span class="nb" id="nb-learn" hidden></span></a>
+    <a href="#grammar"><i>📘</i><span class="lbl">Grammatik</span> <span class="nb" id="nb-gram" hidden></span></a>
+    <a href="#trainer"><i>🧩</i><span class="lbl">Trainer</span></a>
+    <a href="#topics"><i>🗂️</i><span class="lbl">Themen</span></a>
+    <a href="#dialogs"><i>💬</i><span class="lbl">Dialoge</span></a>
+    <a href="#memory"><i>🃏</i><span class="lbl">Memory</span></a>
+    <a href="#vocab"><i>📋</i><span class="lbl">Vokabeln verwalten</span></a>
+    <a href="#settings"><i>⚙️</i><span class="lbl">Einstellungen</span></a>
+    <div class="nav-foot">Läuft komplett offline</div>
+  </aside>
+  <main id="main"></main>
+
+  <script src="js/norsk.js"></script>
+  <script src="js/data/lexicon.js"></script>
+  <script src="js/data/grammar.js"></script>
+  <script src="js/data/topics.js"></script>
+  <script src="js/data/dialogs.js"></script>
+  <script src="js/data/memory.js"></script>
+  <script src="js/data/startpaket.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/keyboard.js"></script>
+  <script src="js/dialogs.js"></script>
+  <script src="js/memory.js"></script>
+  <!-- optional: eigene Vokabelpakete (privat, nicht im Git) -->
+  <script src="vokabeln/pakete.js" onerror="void 0"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

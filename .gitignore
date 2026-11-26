@@ -1,0 +1,7 @@
+# eigene Vokabellisten (privat)
+vokabeln/meine_vokabeln_*.csv
+vokabeln/pakete.js
+*backup*.json
+
+# lokale Werkzeug-Einstellungen
+.claude/

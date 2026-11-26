@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">  <!-- nicht in Suchmaschinen aufnehmen --><title>Tests Norwegisch</title></head>
+<body style="font-family:sans-serif">
+<h2>Engine-Tests Norwegisch</h2><pre id="out"></pre>
+<script src="../js/norsk.js"></script>
+<script src="../js/data/lexicon.js"></script>
+<script src="../js/data/grammar.js"></script>
+<script>
+const N = Norsk, L = Lexicon; let out = '', fail = 0, n = 0;
+const eq = (label, got, exp) => { n++; if (got !== exp) { fail++; out += `✗ ${label}: erwartet „${exp}“, bekommen „${got}“\n`; } };
+const noun = no => L.nouns.find(x => x.no === no) || null, verb = i => L.verbs.find(x => x.inf === i), adj = a => L.adjs.find(x => x.no === a);
+// Nomen: [Eintrag, bestimmt, Plural, bestimmter Plural]
+[[noun('bil'), 'bilen', 'biler', 'bilene'], [noun('jente'), 'jenta', 'jenter', 'jentene'], [noun('hus'), 'huset', 'hus', 'husene'],
+ [noun('eple'), 'eplet', 'epler', 'eplene'], [noun('time'), 'timen', 'timer', 'timene'], [noun('lærer'), 'læreren', 'lærere', 'lærerne'],
+ [noun('mann'), 'mannen', 'menn', 'mennene'], [noun('bok'), 'boka', 'bøker', 'bøkene'], [noun('barn'), 'barnet', 'barn', 'barna'],
+ [noun('vindu'), 'vinduet', 'vinduer', 'vinduene'], [noun('problem'), 'problemet', 'problemer', 'problemene'], [noun('dør'), 'døra', 'dører', 'dørene'],
+ [noun('øye'), 'øyet', 'øyne', 'øynene'], [noun('nabo'), 'naboen', 'naboer', 'naboene'], [noun('genser'), 'genseren', 'gensere', 'genserne'],
+ [{ no: 'stol', g: 'm' }, 'stolen', 'stoler', 'stolene'], [{ no: 'avis', g: 'f' }, 'avisa', 'aviser', 'avisene'], [{ no: 'bord', g: 'n' }, 'bordet', 'bord', 'bordene']
+].forEach(([e, d, p, dp]) => { const f = N.nounForms(e); eq(e.no + ' def', f.def, d); eq(e.no + ' pl', f.pl, p); eq(e.no + ' defPl', f.defPl, dp); });
+eq('jente defAlt', N.nounForms(noun('jente')).defAlt, 'jenten');
+// Verben: [Infinitiv, Präsens, Präteritum, Perfekt, Imperativ]
+[['snakke', 'snakker', 'snakket', 'har snakket', 'snakk'], ['spise', 'spiser', 'spiste', 'har spist', 'spis'], ['leve', 'lever', 'levde', 'har levd', 'lev'],
+ ['bo', 'bor', 'bodde', 'har bodd', 'bo'], ['begynne', 'begynner', 'begynte', 'har begynt', 'begynn'], ['glemme', 'glemmer', 'glemte', 'har glemt', 'glem'],
+ ['bygge', 'bygger', 'bygde', 'har bygd', 'bygg'], ['spille', 'spiller', 'spilte', 'har spilt', 'spill'], ['gå', 'går', 'gikk', 'har gått', 'gå'],
+ ['komme', 'kommer', 'kom', 'har kommet', 'kom'], ['skrive', 'skriver', 'skrev', 'har skrevet', 'skriv'], ['gjøre', 'gjør', 'gjorde', 'har gjort', 'gjør'],
+ ['være', 'er', 'var', 'har vært', 'vær'], ['si', 'sier', 'sa', 'har sagt', 'si'], ['møte', 'møter', 'møtte', 'har møtt', 'møt'], ['arbeide', 'arbeider', 'arbeidet', 'har arbeidet', 'arbeid'],
+ ['kjøpe', 'kjøper', 'kjøpte', 'har kjøpt', 'kjøp'], ['prøve', 'prøver', 'prøvde', 'har prøvd', 'prøv'], ['bety', 'betyr', 'betydde', 'har betydd', 'bety'],
+ ['selge', 'selger', 'solgte', 'har solgt', 'selg'], ['vite', 'vet', 'visste', 'har visst', 'vit']
+].forEach(([i, pr, pt, pf, im]) => { const f = N.verbForms(verb(i)); eq(i + ' pres', f.pres, pr); eq(i + ' pret', f.pret, pt); eq(i + ' perf', f.perf, pf); eq(i + ' imp', f.imp, im); });
+eq('kunne pres', N.verbForms(verb('kunne')).pres, 'kan');
+// Regel für unbekannte Verben
+[['vaske', 1], ['høre', 2], ['eie', 3], ['tro', 4], ['jobbe', 1]].forEach(([i, c]) => eq('Klasse ' + i, N.guessClass(i), c));
+// Adjektive: [Wort, Neutrum, Plural, Komparativ, Superlativ]
+[['stor', 'stort', 'store', 'større', 'størst'], ['liten', 'lite', 'små', 'mindre', 'minst'], ['god', 'godt', 'gode', 'bedre', 'best'],
+ ['ny', 'nytt', 'nye', 'nyere', 'nyest'], ['blå', 'blått', 'blå', 'blåere', 'blåest'], ['grønn', 'grønt', 'grønne', 'grønnere', 'grønnest'],
+ ['viktig', 'viktig', 'viktige', 'viktigere', 'viktigst'], ['hvit', 'hvitt', 'hvite', 'hvitere', 'hvitest'], ['lett', 'lett', 'lette', 'lettere', 'lettest'],
+ ['gammel', 'gammelt', 'gamle', 'eldre', 'eldst'], ['norsk', 'norsk', 'norske', 'norskere', 'norskest'], ['rask', 'raskt', 'raske', 'raskere', 'raskest'],
+ ['billig', 'billig', 'billige', 'billigere', 'billigst'], ['vakker', 'vakkert', 'vakre', 'vakrere', 'vakrest']
+].forEach(([a, nn, pl, k, s]) => { const f = N.adjForms(adj(a) || { no: a }); eq(a + ' n', f.n, nn); eq(a + ' pl', f.pl, pl); eq(a + ' komp', f.komp, k); eq(a + ' sup', f.sup, s); });
+// Zahlen & Uhrzeit
+[[7, 'sju'], [21, 'tjueen'], [47, 'førtisju'], [100, 'hundre'], [250, 'to hundre og femti'], [1000, 'tusen'], [1999, 'tusen ni hundre og nittini'], [3005, 'tre tusen og fem']]
+  .forEach(([x, w]) => eq('Zahl ' + x, N.num(x), w));
+eq('Uhr 3:30', N.clock(3, 30)[0], 'halv fire'); eq('Uhr 3:15', N.clock(3, 15)[0], 'kvart over tre'); eq('Uhr 3:45', N.clock(3, 45)[0], 'kvart på fire');
+eq('Uhr 12:30', N.clock(12, 30)[0], 'halv ett'); eq('Uhr 1:00', N.clock(1, 0)[1], 'klokka ett'); eq('Uhr 3:20', N.clock(3, 20)[0], 'ti på halv fire');
+eq('Ordinal 17', N.ordinal(17), 'syttende'); eq('Ordinal 23', N.ordinal(23), 'tjuetredje'); eq('Ordinal 31', N.ordinal(31), 'trettiførste');
+// Grammatik: Fehlerindex im gültigen Bereich, jede Lektion hat Sätze
+for (const p of Grammar.points) {
+  n++; if (!p.s || p.s.length < 3) { fail++; out += `✗ zu wenige Sätze: ${p.id}\n`; }
+  for (const e of (p.err || [])) { n++; if (e[2] >= e[0].split(/\s+/).length) { fail++; out += `✗ Fehlerindex ${p.id}: ${e[0]}\n`; } }
+}
+out = `${n} Tests (Lektionen: ${Grammar.points.length}, Nomen ${L.nouns.length}, Verben ${L.verbs.length}, Adjektive ${L.adjs.length}), ${fail} Fehler\n` + out;
+document.getElementById('out').textContent = out;
+</script></body></html>
