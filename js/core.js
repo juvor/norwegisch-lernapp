@@ -30,22 +30,52 @@
     ui: { theme: 'auto', accent: '#c2362f', scale: 1 },     // Darstellung
     kbd: { physical: true, auto: false }                     // Tastatur
   };
-  function defaultState() {
-    return { version: 1, vocab: [], grammar: {}, settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)), stats: { days: {}, newCount: { date: '', n: 0 } }, lastBackup: '' };
+  /* ───────── Datenformat, Migration & Backups ─────────
+     Regeln für künftige Updates (damit alte Backups und der Lernstand erhalten bleiben):
+     - Kennungen (Vokabel-id, Lektions-id, Dialog-/Memory-Set-id, Felder) nie umbenennen oder löschen – nur hinzufügen.
+     - Ändert sich das Format, SCHEMA erhöhen und in MIGRATIONS einen Schritt ergänzen (alt → neu, ohne Datenverlust).
+     - tests/test.html enthält ein Backup im alten Format, das nach jedem Update fehlerfrei laden muss. */
+  const APP_ID = KEY.replace(/-v\d+$/, '');          // z. B. 'koreanisch-lernapp'
+  const SCHEMA = 2;
+  const MIGRATIONS = {
+    // 1 → 2: App-Kennung und Backup-Zähler; Bereiche, die später dazukamen (Pakete, Dialoge, Memory)
+    2: st => {
+      st.appId = st.appId || APP_ID;
+      st.backupNo = st.backupNo || 0;
+      st.importedPackages = st.importedPackages || {};
+      st.dialogs = st.dialogs || {};
+      if (!st.memory) st.memory = { opts: { mode: 'pic', size: 8, speak: true }, best: {} };
+    }
+  };
+  function migrate(st) {
+    st = st || {};
+    st.version = st.version || 1;
+    for (let v = st.version + 1; v <= SCHEMA; v++) { if (MIGRATIONS[v]) MIGRATIONS[v](st); st.version = v; }
+    // fehlende Bereiche und neue Einstellungen mit Standardwerten ergänzen – Vorhandenes bleibt unverändert
+    st.vocab = Array.isArray(st.vocab) ? st.vocab : [];
+    st.grammar = st.grammar || {};
+    st.settings = Object.assign({}, JSON.parse(JSON.stringify(DEFAULT_SETTINGS)), st.settings || {});
+    st.settings.ui = Object.assign({}, DEFAULT_SETTINGS.ui, st.settings.ui || {});
+    st.settings.kbd = Object.assign({}, DEFAULT_SETTINGS.kbd, st.settings.kbd || {});
+    st.stats = st.stats || {};
+    st.stats.days = st.stats.days || {};
+    st.stats.newCount = st.stats.newCount || { date: '', n: 0 };
+    return st;
+  }
+  // Prüft ein Backup vor dem Einspielen. Ergebnis: { ok, msg }
+  function checkBackup(st) {
+    if (!st || typeof st !== 'object' || !Array.isArray(st.vocab) || !st.settings) return { ok: false, msg: 'Das ist keine gültige Backup-Datei dieser App.' };
+    if (st.appId && st.appId !== APP_ID) return { ok: false, msg: `Dieses Backup gehört zu einer anderen App („${st.appId}“) und kann hier nicht eingespielt werden.` };
+    if ((st.version || 1) > SCHEMA) return { ok: false, msg: 'Dieses Backup stammt aus einer neueren Version der App. Bitte die App zuerst aktualisieren (mit Internet öffnen bzw. neu laden) und dann erneut versuchen.' };
+    return { ok: true, msg: '' };
   }
   const Store = {
     state: null,
+    APP_ID, SCHEMA, migrate, checkBackup,
     load() {
       try {
         const raw = localStorage.getItem(KEY);
-        const st = raw ? JSON.parse(raw) : defaultState();
-        st.settings = Object.assign({}, DEFAULT_SETTINGS, st.settings || {});
-        st.settings.ui = Object.assign({}, DEFAULT_SETTINGS.ui, st.settings.ui || {});
-        st.settings.kbd = Object.assign({}, DEFAULT_SETTINGS.kbd, st.settings.kbd || {});
-        st.stats = st.stats || { days: {}, newCount: { date: '', n: 0 } };
-        st.grammar = st.grammar || {};
-        st.vocab = st.vocab || [];
-        this.state = st;
+        this.state = migrate(raw ? JSON.parse(raw) : defaultState());
       } catch (e) {
         console.error(e);
         this.state = defaultState();
@@ -53,10 +83,24 @@
       return this.state;
     },
     save() { localStorage.setItem(KEY, JSON.stringify(this.state)); },
-    replace(st) { localStorage.setItem(KEY, JSON.stringify(st)); this.load(); },
+    replace(st) { localStorage.setItem(KEY, JSON.stringify(migrate(st))); this.load(); },
     reset() { this.state = defaultState(); this.save(); },
+    // Backup-Datei erzeugen: fortlaufende Nummer, Datum und Uhrzeit im Namen
+    backup() {
+      const st = this.state, now = new Date();
+      st.backupNo = (st.backupNo || 0) + 1;
+      st.lastBackup = today();
+      st.lastBackupAt = now.toISOString();
+      this.save();
+      const stamp = today() + '_' + pad(now.getHours()) + '-' + pad(now.getMinutes());
+      const name = APP_ID.replace(/-lernapp$/, '') + '-backup_' + stamp + '_Nr-' + String(st.backupNo).padStart(3, '0') + '.json';
+      return { name, json: JSON.stringify(Object.assign({ exportedAt: now.toISOString() }, st), null, 1) };
+    },
     DEFAULT_SETTINGS
   };
+  function defaultState() {
+    return migrate({ version: SCHEMA, appId: APP_ID, backupNo: 0, vocab: [], grammar: {}, settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)), stats: { days: {}, newCount: { date: '', n: 0 } }, lastBackup: '' });
+  }
 
   function logStat(kind, correct) {
     const d = today();
@@ -110,6 +154,7 @@
       if (ok) { s.phase = Math.min(6, s.phase + 1); s.due = addDays(today(), ints[s.phase - 1] || 1); }
       else { s.phase = 1; s.due = addDays(today(), 1); }
       s.last = today();
+      s.ts = Date.now();
       logStat('vocab', ok);
       Store.save();
       return { before, after: s.phase, due: s.due };
@@ -136,6 +181,7 @@
       if (pct >= 0.8) { s.phase = Math.min(6, s.phase + 1); s.due = addDays(today(), ints[s.phase - 1] || 1); }
       else if (pct < 0.5) { s.phase = 1; s.due = addDays(today(), 1); }
       else { s.due = addDays(today(), 1); }
+      s.ts = Date.now();
       s.history = (s.history || []).concat([{ d: today(), p: Math.round(pct * 100) }]).slice(-20);
       Store.save();
       return { before, after: s.phase, due: s.due };

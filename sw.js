@@ -1,6 +1,6 @@
 /* Service Worker: speichert die App für den Offline-Betrieb (iPad / Home-Bildschirm).
    WICHTIG: Bei jeder Änderung an App-Dateien VERSION erhöhen, sonst sieht das iPad die alte Version. */
-const VERSION = 'no-v7';
+const VERSION = 'no-v8';
 const CACHE = 'norwegisch-app-' + VERSION;
 const FILES = [
   './', './index.html', './manifest.webmanifest', './css/style.css',

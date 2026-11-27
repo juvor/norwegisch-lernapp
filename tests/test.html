@@ -6,6 +6,7 @@
 <script src="../js/norsk.js"></script>
 <script src="../js/data/lexicon.js"></script>
 <script src="../js/data/grammar.js"></script>
+<script src="../js/core.js"></script>
 <script>
 const N = Norsk, L = Lexicon; let out = '', fail = 0, n = 0;
 const eq = (label, got, exp) => { n++; if (got !== exp) { fail++; out += `✗ ${label}: erwartet „${exp}“, bekommen „${got}“\n`; } };
@@ -49,6 +50,39 @@ for (const p of Grammar.points) {
   n++; if (!p.s || p.s.length < 3) { fail++; out += `✗ zu wenige Sätze: ${p.id}\n`; }
   for (const e of (p.err || [])) { n++; if (e[2] >= e[0].split(/\s+/).length) { fail++; out += `✗ Fehlerindex ${p.id}: ${e[0]}\n`; } }
 }
+
+// ── Backup-Kompatibilität: Backup im ALTEN Format (Version 1, wie bis 2026-11-26 erzeugt) muss vollständig laden ──
+(function () {
+  const S = Core.Store;
+  const old = {
+    version: 1,
+    vocab: [{ id: 'k1', ko: 'WORT1', de: 'Bedeutung', topic: 'Alltag', pos: 'Nomen', prio: 1, note: 'n',
+      srs: { de2ko: { phase: 2, due: '2026-11-27', last: '2026-11-24' }, ko2de: { phase: 0, due: '' } } },
+      { id: 'k2', ko: 'WORT2', de: 'Zweite', srs: { de2ko: { phase: 6, due: '2027-05-01', last: '2026-11-01' }, ko2de: { phase: 1, due: '2026-11-26', last: '2026-11-25' } } }],
+    grammar: { present: { active: true, phase: 3, due: '2026-12-01', history: [{ d: '2026-11-24', p: 90 }] } },
+    settings: { vocabIntervals: [1, 3, 9, 29, 90, 180], directions: 'de2ko', newPerDay: 15 },
+    stats: { days: { '2026-11-25': { vocab: 12, vocabOk: 10, grammar: 3, grammarOk: 3 } }, newCount: { date: '2026-11-25', n: 7 } },
+    importedPackages: { teil1: 'abc' }, lastBackup: '2026-11-25'
+  };
+  const before = JSON.stringify(old.vocab) + JSON.stringify(old.grammar);
+  const st = S.migrate(JSON.parse(JSON.stringify(old)));
+  eq('Backup: Formatversion aktualisiert', st.version, S.SCHEMA);
+  eq('Backup: App-Kennung ergänzt', st.appId, S.APP_ID);
+  eq('Backup: Lernstand Vokabeln unverändert', JSON.stringify(st.vocab), JSON.stringify(old.vocab));
+  eq('Backup: Grammatik unverändert', JSON.stringify(st.grammar), JSON.stringify(old.grammar));
+  eq('Backup: eigene Einstellung bleibt', st.settings.directions, 'de2ko');
+  eq('Backup: eigene Einstellung bleibt (2)', st.settings.newPerDay, 15);
+  eq('Backup: neue Einstellungen ergänzt', typeof st.settings.ui, 'object');
+  eq('Backup: Statistik bleibt', st.stats.days['2026-11-25'].vocab, 12);
+  eq('Backup: Pakete bleiben', st.importedPackages.teil1, 'abc');
+  eq('Backup: Bereiche ergänzt', typeof st.dialogs + '/' + typeof st.memory, 'object/object');
+  eq('Backup: Original nicht verändert', JSON.stringify(old.vocab) + JSON.stringify(old.grammar), before);
+  eq('Backup: zweimal migrieren ändert nichts', JSON.stringify(S.migrate(JSON.parse(JSON.stringify(st)))), JSON.stringify(st));
+  eq('Prüfung: altes Backup ok', S.checkBackup(old).ok, true);
+  eq('Prüfung: andere App abgelehnt', S.checkBackup(Object.assign({}, old, { appId: 'andere-lernapp' })).ok, false);
+  eq('Prüfung: neuere Version abgelehnt', S.checkBackup(Object.assign({}, old, { version: S.SCHEMA + 1 })).ok, false);
+  eq('Prüfung: keine Backup-Datei abgelehnt', S.checkBackup({ foo: 1 }).ok, false);
+})();
 out = `${n} Tests (Lektionen: ${Grammar.points.length}, Nomen ${L.nouns.length}, Verben ${L.verbs.length}, Adjektive ${L.adjs.length}), ${fail} Fehler\n` + out;
 document.getElementById('out').textContent = out;
 </script></body></html>

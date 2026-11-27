@@ -49,6 +49,7 @@ Formentabelle zeigt unbekannte Wörter nach Regel – mit Warnhinweis.
 - `js/data/grammar.js`: 30 Lektionen, Level 1 = A1, 2 = A2, 3 = B1; `drill.kind`: `verb` (forms, only, weakOnly, strongOnly), `noun`, `adj`, `numbers`.
 - `js/data/topics.js`: 10 Themen mit Alltagsphrasen.
 - Startpaket: `python -I tools/make_startpaket.py` erzeugt `js/data/startpaket.js` aus dem Lexikon (Themen grob zugeordnet, Stufe 1).
+  Dasselbe Skript schreibt die Wortliste als **Anhang A** in `VOKABELN_FUER_CLAUDE.md` (zwischen den Markierungen `STARTWORTLISTE`), damit fremde Claude-Instanzen keine Startwörter doppelt erzeugen.
 - Eigene Pakete: wie Koreanisch – `vokabeln/meine_vokabeln_teilN.csv` + `vokabeln/build_pakete.py` → `vokabeln/pakete.js` (privat, siehe .gitignore).
   CSV-Spalten: `Norwegisch;Deutsch;Thema;Wortart;Notiz;Beispiel NO;Beispiel DE;Häufigkeit`.
 
@@ -85,6 +86,19 @@ Lösung: `tools/norwegische-stimme-freischalten.reg` (aus `reg export` des OneCo
 ## 7e. Veröffentlichung
 Online: **https://juvor.github.io/norwegisch-lernapp/** (Repo `juvor/norwegisch-lernapp`, öffentlich, `main`, Pages aus root). Ablauf, anonyme Commit-Adresse und Ausschlüsse wie in der Koreanisch-Doku (Abschnitt 9b). Ausgeschlossen: `vokabeln/meine_vokabeln_*.csv`, `vokabeln/pakete.js`, `.claude/`, Backups.
 
+## 7f. Datenformat, Backups & Updates (seit 2026-11-27)
+- Jeder Datenstand/jedes Backup hat `version` (Formatversion = `SCHEMA` in core.js, aktuell 2), `appId` (`koreanisch-lernapp` / `norwegisch-lernapp`),
+  `backupNo` (fortlaufend, reist im Backup mit), `lastBackupAt` (ISO-Zeit) und im Backup zusätzlich `exportedAt`.
+- `Store.migrate(st)` läuft beim Laden **und** beim Einspielen: bringt ältere Formate schrittweise über `MIGRATIONS[n]` auf den neuesten Stand und ergänzt fehlende Bereiche/Einstellungen mit Standardwerten – Vorhandenes bleibt unverändert. Mehrfaches Migrieren ändert nichts.
+- `Store.checkBackup(st)` lehnt ab: keine Backup-Datei, Backup einer anderen App (`appId`), Backup aus einer **neueren** Formatversion (dann zuerst App aktualisieren).
+- `Store.backup()` erzeugt Dateinamen wie `koreanisch-backup_2026-11-27_14-35_Nr-012.json`.
+- Lernkarten speichern zusätzlich `srs[richtung].ts` (Zeitstempel der letzten Abfrage), Grammatik `grammar[id].ts` – Grundlage für ein späteres Zusammenführen von Backups.
+- **Regeln für Updates (Lernstand muss erhalten bleiben):**
+  1. Kennungen nie umbenennen/löschen: Vokabel-`id`, Lektions-`id`, Dialog-`id`, Memory-Set-`id`, Paket-`id`, Feldnamen im Datenmodell.
+  2. Neue Funktionen legen ihre Daten in **neuen** Feldern ab und kommen ohne sie aus (z. B. `state.memory = state.memory || …`).
+  3. Muss sich das Format ändern: `SCHEMA` erhöhen, Schritt in `MIGRATIONS` ergänzen, Testfall in `tests/test.html` ergänzen.
+  4. `tests/test.html` enthält ein Backup im alten Format 1 – es muss nach jedem Update fehlerfrei und vollständig laden.
+
 ## 8. Offene Ideen
 - Größerer Grundwortschatz (500+) als weiteres Paket.
 - Nynorsk-Variante (eigene Formen).
@@ -94,6 +108,8 @@ Online: **https://juvor.github.io/norwegisch-lernapp/** (Repo `juvor/norwegisch-
 
 | Datum | Version | Änderung |
 |---|---|---|
+| 2026-11-27 | no-v8 | Backups wie Koreanisch v13: Formatversion, App-Kennung, Migration, Prüfung beim Einspielen, Dateiname mit Datum/Uhrzeit/Nummer; Backup-Tests mit altem Format. |
+| 2026-11-26 | – | `VOKABELN_FUER_CLAUDE.md`: Abschnitt „Keine Doppelten“ (Grundwort-Vergleich, zusätzliche Bedeutungen zusammenführen, eigene Export-CSV mitgeben), neues Beispiel, Anhang A mit allen 245 Startwörtern (automatisch aus `make_startpaket.py`). Keine Änderung am App-Code. |
 | 2026-11-26 | no-v7 | Datenschutz: Doku neutral formuliert, `noindex` gegen Suchmaschinen; Repository-Verlauf auf eine saubere Version zurückgesetzt. |
 | 2026-11-26 | no-v6 | Veröffentlicht auf GitHub Pages (https://juvor.github.io/norwegisch-lernapp/); Anleitung iPad/iPhone mit echter Adresse. |
 | 2026-11-26 | no-v6 | `VOKABELN_FUER_CLAUDE.md`: Anleitung für (fremde) Claude-Instanzen zum Erstellen von Import-Tabellen/Paketen; `Check.alts()` ignoriert Klammerinhalte (Formen in Klammern zählten sonst als richtige Antwort). |

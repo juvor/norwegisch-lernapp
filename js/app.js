@@ -664,7 +664,7 @@
           <p class="small"><b>Norwegisch installiert, aber keine Stimme gefunden?</b> Windows installiert „Microsoft Jon“ nur als moderne Stimme, die Browser offline nicht sehen. Lösung: im App-Ordner <b>tools\norwegische-stimme-freischalten.reg</b> doppelklicken, Nachfrage bestätigen, Browser komplett neu starten. (Rückgängig: norwegische-stimme-rueckgaengig.reg.) Alternative mit Internet: Microsoft Edge bietet die Online-Stimmen „Pernille“ und „Finn“.</p><p class="muted small">Stimmen mit „(online!)“ brauchen Internet – die App bevorzugt Offline-Stimmen.</p></details>
       </div>
       <div class="card"><h3>💾 Sicherung</h3>
-        <p class="muted small">Alle Daten liegen nur in diesem Browser (lokaler Speicher). Mach regelmäßig ein Backup – z. B. bevor du den Browser-Verlauf löschst oder den Ordner verschiebst. ${Store.state.lastBackup ? 'Letztes Backup: ' + Store.state.lastBackup : ''}</p>
+        <p class="muted small">Alle Daten liegen nur in diesem Browser (lokaler Speicher). Mach regelmäßig ein Backup – z. B. bevor du den Browser-Verlauf löschst oder den Ordner verschiebst. ${Store.state.lastBackupAt ? `Letztes Backup: Nr. ${Store.state.backupNo} am ${new Date(Store.state.lastBackupAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}` : Store.state.lastBackup ? 'Letztes Backup: ' + Store.state.lastBackup : ''}</p>
         <div class="actions"><button class="btn primary" id="bk">Backup herunterladen</button><label class="btn">Backup wiederherstellen<input type="file" id="rst" accept=".json" hidden></label>
         <button class="btn ghost" id="csv2">Vokabeln als CSV</button><button class="btn ghost danger" id="wipe">Alles zurücksetzen</button></div></div>`;
     $('#dir').value = s.directions; $('#mode').value = s.answerMode;
@@ -690,14 +690,20 @@
     $('#voice').onchange = e => { s.voiceURI = e.target.value; save(); };
     $('#rate').oninput = e => { s.rate = parseFloat(e.target.value); $('#ratev').textContent = s.rate; };
     $('#rate').onchange = save;
-    $('#bk').onclick = () => { Store.state.lastBackup = today(); Store.save(); download('norwegisch-backup-' + today() + '.json', JSON.stringify(Store.state, null, 1), 'application/json'); viewSettings(); };
+    $('#bk').onclick = () => { const b = Store.backup(); download(b.name, b.json, 'application/json'); UI.toast('Gespeichert als ' + b.name); viewSettings(); };
     $('#rst').onchange = e => {
       const f = e.target.files[0]; if (!f) return;
       const r = new FileReader();
       r.onload = () => {
-        try { const st = JSON.parse(r.result); if (!st.vocab || !st.settings) throw new Error('Kein gültiges Backup');
-          if (confirm(`Backup mit ${st.vocab.length} Vokabeln laden? Der aktuelle Stand wird ersetzt.`)) { Store.replace(st); g.Theme.apply(Store.state.settings.ui); UI.toast('Backup wiederhergestellt.'); viewSettings(); }
-        } catch (err) { alert('Fehler: ' + err.message); }
+        try {
+          const st = JSON.parse(r.result);
+          const c = Store.checkBackup(st); if (!c.ok) throw new Error(c.msg);
+          const when = st.exportedAt ? new Date(st.exportedAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : (st.lastBackup || 'unbekannt');
+          if (confirm(`Backup${st.backupNo ? ' Nr. ' + st.backupNo : ''} vom ${when} mit ${st.vocab.length} Vokabeln laden?\nDer aktuelle Stand auf diesem Gerät wird ersetzt.`)) {
+            Store.replace(st); g.Theme.apply(Store.state.settings.ui); UI.toast('Backup wiederhergestellt.'); viewSettings();
+          }
+        } catch (err) { alert(err.message.startsWith('Unexpected') ? 'Die Datei konnte nicht gelesen werden (kein gültiges Backup).' : err.message); }
+        e.target.value = '';
       };
       r.readAsText(f, 'UTF-8');
     };

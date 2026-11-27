@@ -85,3 +85,10 @@ Eigene Vokabelpakete aus dem Ordner `vokabeln/` sind bewusst **nicht** online �
 In einem Cloud-Ordner (z. B. OneDrive oder iCloud Drive, Unterordner `Sprach-Backups`) – synchronisiert und auf dem iPad über die Dateien-App erreichbar.
 Der Browser lädt nach *Downloads* – Datei dorthin verschieben oder im Browser „Jedes Mal fragen, wo gespeichert wird“ einstellen.
 Etwa wöchentlich sichern, die letzten 3–4 Backups behalten.
+
+**Backup-Dateien** heißen z. B. `norwegisch-backup_2026-11-27_14-35_Nr-012.json` – mit Datum, Uhrzeit und fortlaufender Nummer (die Nummer zählt über alle Geräte weiter, wenn du immer das neueste Backup einspielst). Beim Einspielen zeigt die App Nummer, Zeitpunkt und Anzahl der Vokabeln an.
+- Ein Backup der jeweils anderen Sprach-App wird abgelehnt.
+- Ein Backup aus einer **neueren** App-Version (z. B. Handy schon aktualisiert, Laptop noch nicht) wird abgelehnt – dann die App zuerst mit Internet öffnen/neu laden.
+- Backups aus **älteren** Versionen funktionieren immer – auch nach Updates mit neuen Dialogen, Spielen usw. bleibt der Lernstand erhalten.
+- Im Backup steckt alles: Vokabeln mit Phase und Fälligkeitsdatum je Richtung, Grammatik-Stand, Statistik, Bestwerte, Einstellungen. Was auf dem einen Gerät heute fällig war, ist nach dem Einspielen auch auf dem anderen heute fällig.
+- Mehrere Geräte: immer abwechselnd lernen und vor jedem Wechsel ein Backup machen und auf dem anderen Gerät einspielen (Einspielen **ersetzt** den Stand).
