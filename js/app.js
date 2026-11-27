@@ -698,7 +698,8 @@
         try {
           const st = JSON.parse(r.result);
           const c = Store.checkBackup(st); if (!c.ok) throw new Error(c.msg);
-          const when = st.exportedAt ? new Date(st.exportedAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : (st.lastBackup || 'unbekannt');
+          const at = st.lastBackupAt || st.exportedAt;
+          const when = at ? new Date(at).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : (st.lastBackup || 'unbekannt');
           if (confirm(`Backup${st.backupNo ? ' Nr. ' + st.backupNo : ''} vom ${when} mit ${st.vocab.length} Vokabeln laden?\nDer aktuelle Stand auf diesem Gerät wird ersetzt.`)) {
             Store.replace(st); g.Theme.apply(Store.state.settings.ui); UI.toast('Backup wiederhergestellt.'); viewSettings();
           }

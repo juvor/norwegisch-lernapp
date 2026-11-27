@@ -69,9 +69,13 @@
     if ((st.version || 1) > SCHEMA) return { ok: false, msg: 'Dieses Backup stammt aus einer neueren Version der App. Bitte die App zuerst aktualisieren (mit Internet öffnen bzw. neu laden) und dann erneut versuchen.' };
     return { ok: true, msg: '' };
   }
+  // Inhalt der Backup-Datei: exportedAt ist immer der aktuelle Zeitpunkt
+  // (ein alter Wert aus einem eingespielten Backup darf ihn nicht überschreiben)
+  function fileJson(st, now) { return JSON.stringify(Object.assign({ exportedAt: now.toISOString() }, st, { exportedAt: now.toISOString() }), null, 1); }
+
   const Store = {
     state: null,
-    APP_ID, SCHEMA, migrate, checkBackup,
+    APP_ID, SCHEMA, migrate, checkBackup, fileJson,
     load() {
       try {
         const raw = localStorage.getItem(KEY);
@@ -83,7 +87,7 @@
       return this.state;
     },
     save() { localStorage.setItem(KEY, JSON.stringify(this.state)); },
-    replace(st) { localStorage.setItem(KEY, JSON.stringify(migrate(st))); this.load(); },
+    replace(st) { st = migrate(st); delete st.exportedAt; localStorage.setItem(KEY, JSON.stringify(st)); this.load(); },
     reset() { this.state = defaultState(); this.save(); },
     // Backup-Datei erzeugen: fortlaufende Nummer, Datum und Uhrzeit im Namen
     backup() {
@@ -94,7 +98,8 @@
       this.save();
       const stamp = today() + '_' + pad(now.getHours()) + '-' + pad(now.getMinutes());
       const name = APP_ID.replace(/-lernapp$/, '') + '-backup_' + stamp + '_Nr-' + String(st.backupNo).padStart(3, '0') + '.json';
-      return { name, json: JSON.stringify(Object.assign({ exportedAt: now.toISOString() }, st), null, 1) };
+      delete st.exportedAt;
+      return { name, json: fileJson(st, now) };
     },
     DEFAULT_SETTINGS
   };

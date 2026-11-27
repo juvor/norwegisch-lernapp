@@ -108,6 +108,7 @@ Online: **https://juvor.github.io/norwegisch-lernapp/** (Repo `juvor/norwegisch-
 
 | Datum | Version | Änderung |
 |---|---|---|
+| 2026-11-27 | no-v9 | Backup-Fehler behoben: Nach dem Einspielen eines Backups stand im nächsten Backup die alte Exportzeit (`exportedAt`) – jetzt immer aktuelle Zeit (`Store.fileJson`), beim Einspielen wird der Wert nicht mehr in den Stand übernommen; Abfrage beim Einspielen zeigt `lastBackupAt`. Lernstand war nicht betroffen. Testfall ergänzt. |
 | 2026-11-27 | no-v8 | Backups wie Koreanisch v13: Formatversion, App-Kennung, Migration, Prüfung beim Einspielen, Dateiname mit Datum/Uhrzeit/Nummer; Backup-Tests mit altem Format. |
 | 2026-11-26 | – | `VOKABELN_FUER_CLAUDE.md`: Abschnitt „Keine Doppelten“ (Grundwort-Vergleich, zusätzliche Bedeutungen zusammenführen, eigene Export-CSV mitgeben), neues Beispiel, Anhang A mit allen 245 Startwörtern (automatisch aus `make_startpaket.py`). Keine Änderung am App-Code. |
 | 2026-11-26 | no-v7 | Datenschutz: Doku neutral formuliert, `noindex` gegen Suchmaschinen; Repository-Verlauf auf eine saubere Version zurückgesetzt. |
